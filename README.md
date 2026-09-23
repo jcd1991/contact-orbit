@@ -34,19 +34,20 @@ sf project deploy start --source-dir force-app --target-org YOUR_ORG \
   --tests CEI_ContactEmailServiceTest \
   --tests CEI_EmailMessageHandlerTest \
   --wait 30
-sf apex run test --tests CEI_ContactEmailServiceTest,CEI_EmailMessageHandlerTest --target-org YOUR_ORG --code-coverage --wait 30
+sf apex run test --tests CEI_ContactEmailServiceTest --tests CEI_EmailMessageHandlerTest \
+  --target-org YOUR_ORG --code-coverage --wait 30
 ```
 
 Assign `Contact Email Identity Admin`, add `Contact Email Manager` to the Contact Lightning record page, then enable the hierarchy setting only after the Email-to-Case automation user has access.
 
 ## Verified MVP status
 
-- Deployed to a connected Salesforce Developer Edition org on September 23, 2026.
-- Deployment `0Afbm00000gr4RtCAI` succeeded with all 20 metadata components.
+- Validated in a Salesforce Developer Edition org on September 23, 2026.
+- Source deployment completed with all 20 metadata components.
 - All 7 scoped Apex tests passed.
 - The service, handler, and both triggers reported full coverage; the controller's defensive permission guard and thin Aura wrapper are the only uncovered controller lines in the scoped deployment result.
 - The Contact record page was verified in Chrome: the card renders cleanly, the add form is aligned, the success toast appears, and a newly-created row is readable in the table.
-- `Contact_Email__c` and `Contact_Email_Settings__c` were read back from the target org, and the packaged permission set was assigned to the validating user.
+- `Contact_Email__c` and `Contact_Email_Settings__c` were read back from the validation org, and the packaged permission set was assigned to the validating user.
 
 This proves the source deploys and behaves correctly in the connected validation org. It does not by itself prove clean-org installation, upgrade compatibility, managed-package creation, or AppExchange security review.
 
@@ -60,3 +61,7 @@ The source is structured for a managed second-generation package, but package cr
 4. Package-version creation, installation in a clean test org, upgrade testing, and Salesforce security review.
 
 Do not reserve a namespace or publish before the Contact-only MVP is validated with design partners.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
