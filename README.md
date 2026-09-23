@@ -51,16 +51,26 @@ Assign `Contact Email Identity Admin`, add `Contact Email Manager` to the Contac
 
 This proves the source deploys and behaves correctly in the connected validation org. It does not by itself prove clean-org installation, upgrade compatibility, managed-package creation, or AppExchange security review.
 
-## Managed 2GP gate
+## Managed 2GP setup status
 
-The source is structured for a managed second-generation package, but package creation requires:
+The source is structured for a managed second-generation package. The working product identity is:
 
-1. A Partner Business Org or Dev Hub authorized in the Salesforce CLI.
-2. A reserved namespace selected after product validation.
-3. A package alias and package ID added to `sfdx-project.json`.
-4. Package-version creation, installation in a clean test org, upgrade testing, and Salesforce security review.
+- Display name: **Contact Orbit**
+- Namespace candidate: `ContactOrbit`
+- Dev Hub alias: `sflens-browser-6988f780d7e5`
+- Dev Hub org ID: `00Dbm00000zvwwzEAA`
 
-Do not reserve a namespace or publish before the Contact-only MVP is validated with design partners.
+The Dev Hub and **Unlocked Packages and Second-Generation Managed Packages** settings are enabled, and the Dev Hub is configured as the Salesforce CLI default. The package has not been created yet because Salesforce requires a namespace to be created in a separate Developer Edition namespace org and linked to the Dev Hub first. The current Dev Hub Package Manager confirms that namespace editing is unavailable in a Dev Hub org.
+
+After the namespace org is created and linked, finish the release setup in this order:
+
+1. Set `"namespace": "ContactOrbit"` in `sfdx-project.json` after Salesforce confirms availability.
+2. Create the managed package with Salesforce CLI.
+3. Create a beta package version with an installation key and code coverage enabled.
+4. Install that version in a fresh scratch org, run the package tests, and verify the Contact UI and Email-to-Case guardrails.
+5. Promote only after upgrade testing and a deliberate release decision; promotion is irreversible.
+
+Do not commit an installation key or reserve a different namespace after package creation. A managed 2GP namespace cannot be changed once the package exists.
 
 ## License
 
