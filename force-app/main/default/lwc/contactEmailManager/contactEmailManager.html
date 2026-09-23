@@ -1,0 +1,57 @@
+<template>
+    <lightning-card title="Contact Emails" icon-name="standard:email">
+        <lightning-button
+            slot="actions"
+            label="Add email"
+            onclick={showCreateForm}>
+        </lightning-button>
+
+        <template if:true={showForm}>
+            <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+                <lightning-input
+                    type="email"
+                    name="emailAddress"
+                    label="Email address"
+                    value={draft.emailAddress}
+                    onchange={handleInput}
+                    required>
+                </lightning-input>
+                <lightning-combobox
+                    name="purpose"
+                    label="Purpose"
+                    value={draft.purpose}
+                    options={purposeOptions}
+                    onchange={handleInput}>
+                </lightning-combobox>
+                <lightning-input
+                    type="checkbox"
+                    name="isPrimary"
+                    label="Primary for this purpose"
+                    checked={draft.isPrimary}
+                    onchange={handleInput}>
+                </lightning-input>
+                <div class="slds-m-top_small">
+                    <lightning-button variant="brand" label="Save" onclick={createEmail}></lightning-button>
+                    <lightning-button class="slds-m-left_x-small" label="Cancel" onclick={hideCreateForm}></lightning-button>
+                </div>
+            </div>
+        </template>
+
+        <template if:true={hasRows}>
+            <lightning-datatable
+                key-field="Id"
+                data={rows}
+                columns={columns}
+                draft-values={draftValues}
+                onsave={handleSave}
+                onrowaction={handleRowAction}
+                hide-checkbox-column>
+            </lightning-datatable>
+        </template>
+        <template if:false={hasRows}>
+            <div class="slds-p-around_medium slds-text-color_weak">
+                No alternate email identities are stored for this Contact.
+            </div>
+        </template>
+    </lightning-card>
+</template>

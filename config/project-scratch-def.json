@@ -1,0 +1,10 @@
+{
+  "orgName": "Contact Email Identity Development",
+  "edition": "Developer",
+  "features": ["ServiceCloud"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    }
+  }
+}

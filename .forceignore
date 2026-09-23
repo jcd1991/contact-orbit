@@ -1,0 +1,5 @@
+.git/
+.sf/
+.sfdx/
+node_modules/
+coverage/

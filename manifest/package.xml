@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>CEI_ContactEmailController</members>
+        <members>CEI_ContactEmailService</members>
+        <members>CEI_ContactEmailServiceTest</members>
+        <members>CEI_EmailMessageHandler</members>
+        <members>CEI_EmailMessageHandlerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>CEI_ContactEmailTrigger</members>
+        <members>CEI_EmailMessageTrigger</members>
+        <name>ApexTrigger</name>
+    </types>
+    <types>
+        <members>Contact_Email__c</members>
+        <members>Contact_Email_Settings__c</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>contactEmailManager</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Contact_Email_Identity_Admin</members>
+        <name>PermissionSet</name>
+    </types>
+    <version>67.0</version>
+</Package>
