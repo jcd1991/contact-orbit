@@ -117,6 +117,8 @@ global with sharing class CEI_ContactEmailService {
         }
 
         if (!contactIds.isEmpty()) {
+            // Salesforce requires FOR UPDATE to omit ORDER BY and uses the Id order
+            // implied by the indexed lookup for the lock acquisition sequence.
             Map<Id, Contact> lockedContacts = new Map<Id, Contact>([
                 SELECT Id FROM Contact WHERE Id IN :contactIds WITH SYSTEM_MODE FOR UPDATE
             ]);

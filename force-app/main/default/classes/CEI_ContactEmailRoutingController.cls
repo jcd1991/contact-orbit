@@ -22,6 +22,7 @@ public with sharing class CEI_ContactEmailRoutingController {
               AND Status__c IN ('Suggested', 'Ambiguous', 'Failed')
             WITH USER_MODE
             ORDER BY Occurred_At__c DESC
+            LIMIT 200
         ];
     }
 
@@ -67,6 +68,7 @@ public with sharing class CEI_ContactEmailRoutingController {
             FROM Contact_Email_Match__c
             WHERE Case__c = :match.Case__c AND Id != :match.Id AND Status__c IN ('Suggested', 'Ambiguous')
             WITH USER_MODE
+            LIMIT 200
         ];
         for (Contact_Email_Match__c staleMatch : stale) {
             staleMatch.Status__c = 'Superseded';

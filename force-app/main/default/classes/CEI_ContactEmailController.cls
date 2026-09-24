@@ -65,6 +65,7 @@ public with sharing class CEI_ContactEmailController {
             WHERE Contact__c = :contactId
             WITH USER_MODE
             ORDER BY Active__c DESC, Is_Primary__c DESC, Purpose_Key__c, Email_Address__c
+            LIMIT 200
         ];
     }
 

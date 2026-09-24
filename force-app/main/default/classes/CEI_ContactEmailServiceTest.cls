@@ -152,4 +152,32 @@ private class CEI_ContactEmailServiceTest {
         }
         System.assert(rejected, 'Expected a missing Contact to be rejected.');
     }
+
+    @IsTest
+    static void resolverHandlesTwoHundredRequestsWithinGovernorBudget() {
+        Contact contact = [SELECT Id FROM Contact LIMIT 1];
+        User packageUser = [SELECT Id FROM User WHERE Alias = 'ceiuser' LIMIT 1];
+        List<CEI_ContactEmailService.ResolveRequest> requests = new List<CEI_ContactEmailService.ResolveRequest>();
+        for (Integer index = 0; index < 200; index++) {
+            CEI_ContactEmailService.ResolveRequest request = new CEI_ContactEmailService.ResolveRequest();
+            request.contactId = contact.Id;
+            request.purposeKey = 'Billing';
+            request.allowContactEmailFallback = true;
+            requests.add(request);
+        }
+
+        List<CEI_ContactEmailService.ResolveResult> results;
+        System.runAs(packageUser) {
+            Test.startTest();
+            results = CEI_ContactEmailService.resolve(requests);
+            Integer queryCount = Limits.getQueries();
+            Integer dmlCount = Limits.getDmlStatements();
+            Test.stopTest();
+            System.assert(queryCount <= 2, 'Resolver should use one Contact query and one identity query for a bulk request.');
+            System.assertEquals(0, dmlCount, 'Resolver must not perform DML.');
+        }
+        System.assertEquals(200, results.size());
+        System.assertEquals('avery.primary@example.com', results[0].emailAddress);
+        System.assertEquals('avery.primary@example.com', results[199].emailAddress);
+    }
 }

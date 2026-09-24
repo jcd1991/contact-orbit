@@ -124,4 +124,65 @@ private class CEI_EmailMessageHandlerTest {
         System.assertEquals(null, supportCase.ContactId);
         System.assertEquals(1, [SELECT COUNT() FROM Contact_Email_Match__c WHERE Case__c = :supportCaseId AND Status__c = 'Ambiguous']);
     }
+
+    @IsTest
+    static void routesTwoHundredMessagesWithBoundedQueriesAndDml() {
+        User packageUser = [SELECT Id FROM User WHERE Alias = 'ceimsg' LIMIT 1];
+        Id contactId;
+        List<Id> caseIds = new List<Id>();
+        System.runAs(packageUser) {
+            CEI_ContactEmailAttestation.testPermissionOverride = true;
+            insert new Contact_Email_Settings__c(
+                SetupOwnerId = UserInfo.getOrganizationId(),
+                Enable_Email_To_Case_Suggestions__c = true,
+                Enable_Verified_Auto_Link__c = true,
+                Match_Log_Retention_Days__c = 90
+            );
+            Account account = new Account(Name = 'Bulk Support Account');
+            insert account;
+            Contact contact = new Contact(LastName = 'Bulk Support Contact', AccountId = account.Id);
+            insert contact;
+            contactId = contact.Id;
+            Contact_Email__c identity = new Contact_Email__c(
+                Contact__c = contact.Id,
+                Email_Address__c = 'bulk@example.com',
+                Purpose_Key__c = 'Support',
+                Is_Primary__c = true,
+                Active__c = true
+            );
+            insert identity;
+            CEI_ContactEmailAttestation.verifyEmail(identity.Id);
+
+            List<Case> cases = new List<Case>();
+            for (Integer index = 0; index < 200; index++) {
+                cases.add(new Case(Subject = 'Bulk routing ' + index, Origin = 'Email'));
+            }
+            insert cases;
+            for (Case supportCase : cases) caseIds.add(supportCase.Id);
+
+            List<EmailMessage> messages = new List<EmailMessage>();
+            for (Case supportCase : cases) {
+                messages.add(new EmailMessage(
+                    ParentId = supportCase.Id,
+                    Incoming = true,
+                    Status = '0',
+                    Subject = 'Bulk sender',
+                    FromAddress = 'bulk@example.com',
+                    ToAddress = 'support@example.com',
+                    TextBody = 'Bulk routing test.'
+                ));
+            }
+
+            Test.startTest();
+            insert messages;
+            Integer queryCount = Limits.getQueries();
+            Integer dmlCount = Limits.getDmlStatements();
+            Test.stopTest();
+            System.assert(queryCount <= 4, 'Email routing should stay within a small fixed query budget for 200 messages.');
+            System.assert(dmlCount <= 4, 'Email routing should use one insert plus grouped audit and Case writes.');
+        }
+
+        System.assertEquals(200, [SELECT COUNT() FROM Contact_Email_Match__c WHERE Source_Email_Message_Id__c != null AND Status__c = 'AutoLinked']);
+        System.assertEquals(200, [SELECT COUNT() FROM Case WHERE Id IN :caseIds AND ContactId = :contactId]);
+    }
 }
