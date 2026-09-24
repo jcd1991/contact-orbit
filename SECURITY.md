@@ -8,8 +8,7 @@ Only the latest committed version is supported while this MVP is being validated
 
 Please do not disclose suspected vulnerabilities in a public issue. Use the
 repository's private GitHub Security Advisory form at
-`https://github.com/<OWNER>/<REPOSITORY>/security/advisories/new` (replace the
-placeholders with the private repository coordinates after publication).
+`https://github.com/jcd1991/contact-orbit/security/advisories/new`.
 Include reproduction steps, affected metadata, and the smallest safe proof of
 impact; maintainers will coordinate a fix and disclosure timeline privately.
 
