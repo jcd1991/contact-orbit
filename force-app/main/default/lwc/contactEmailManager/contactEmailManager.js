@@ -1,17 +1,26 @@
 import { LightningElement, api, wire } from 'lwc';
 import getEmails from '@salesforce/apex/CEI_ContactEmailController.getEmails';
-import createEmailRecord from '@salesforce/apex/CEI_ContactEmailController.createEmailRecord';
-import { deleteRecord, updateRecord } from 'lightning/uiRecordApi';
+import getPurposeOptions from '@salesforce/apex/CEI_ContactEmailController.getPurposeOptions';
+import createEmail from '@salesforce/apex/CEI_ContactEmailController.createEmail';
+import deactivateEmail from '@salesforce/apex/CEI_ContactEmailController.deactivateEmail';
+import verifyEmail from '@salesforce/apex/CEI_ContactEmailAttestation.verifyEmail';
+import revokeEmail from '@salesforce/apex/CEI_ContactEmailAttestation.revokeEmail';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
+import { updateRecord } from 'lightning/uiRecordApi';
 
-const ROW_ACTIONS = [{ label: 'Delete', name: 'delete' }];
+const ROW_ACTIONS = [
+    { label: 'Verify', name: 'verify' },
+    { label: 'Revoke verification', name: 'revoke' },
+    { label: 'Deactivate', name: 'deactivate' }
+];
 const COLUMNS = [
     { label: 'Email', fieldName: 'Email_Address__c', type: 'email', editable: true },
-    { label: 'Purpose', fieldName: 'Purpose__c', type: 'text' },
+    { label: 'Purpose', fieldName: 'Purpose_Key__c', type: 'text', editable: true },
     { label: 'Primary', fieldName: 'Is_Primary__c', type: 'boolean', editable: true },
     { label: 'Active', fieldName: 'Active__c', type: 'boolean', editable: true },
-    { label: 'Last verified', fieldName: 'Last_Verified__c', type: 'date', editable: true },
+    { label: 'Verification', fieldName: 'Verification_Status__c', type: 'text' },
+    { label: 'Verified at', fieldName: 'Verified_At__c', type: 'date' },
     { type: 'action', typeAttributes: { rowActions: ROW_ACTIONS } }
 ];
 
@@ -20,105 +29,80 @@ export default class ContactEmailManager extends LightningElement {
     columns = COLUMNS;
     rows = [];
     draftValues = [];
+    purposeOptions = [];
     showForm = false;
+    isLoading = false;
+    pendingAction;
     wiredResult;
     draft = this.newDraft();
-
-    purposeOptions = [
-        { label: 'General', value: 'General' },
-        { label: 'Work', value: 'Work' },
-        { label: 'Personal', value: 'Personal' },
-        { label: 'Billing', value: 'Billing' },
-        { label: 'Support', value: 'Support' },
-        { label: 'Other', value: 'Other' }
-    ];
 
     @wire(getEmails, { contactId: '$recordId' })
     wiredEmails(result) {
         this.wiredResult = result;
-        if (result.data) {
-            this.rows = result.data;
-        } else if (result.error) {
-            this.toast('Unable to load contact emails', this.errorMessage(result.error), 'error');
-        }
+        if (result.data) this.rows = result.data;
+        if (result.error) this.toast('Unable to load contact emails', this.errorMessage(result.error), 'error');
     }
 
-    get hasRows() {
-        return this.rows.length > 0;
+    @wire(getPurposeOptions)
+    wiredPurposes({ data, error }) {
+        if (data) this.purposeOptions = data.map((option) => ({ label: option.label, value: option.value }));
+        if (error) this.toast('Unable to load purposes', this.errorMessage(error), 'error');
     }
 
-    newDraft() {
-        return { emailAddress: '', purpose: 'General', isPrimary: false };
-    }
+    get hasRows() { return this.rows.length > 0; }
+    get hasPendingAction() { return !!this.pendingAction; }
+    get confirmationLabel() { return this.pendingAction?.action === 'deactivate' ? 'Deactivate identity' : 'Continue'; }
 
-    showCreateForm() {
-        this.draft = this.newDraft();
-        this.showForm = true;
-    }
-
-    hideCreateForm() {
-        this.showForm = false;
-    }
+    newDraft() { return { emailAddress: '', purposeKey: 'General', isPrimary: false }; }
+    showCreateForm() { this.draft = this.newDraft(); this.showForm = true; }
+    hideCreateForm() { this.showForm = false; }
 
     handleInput(event) {
-        const value = event.target.type === 'checkbox'
-            ? event.target.checked
-            : (event.detail?.value ?? event.target.value);
+        const value = event.target.type === 'checkbox' ? event.target.checked : (event.detail?.value ?? event.target.value);
         this.draft = { ...this.draft, [event.target.name]: value };
     }
 
     async createEmail() {
+        if (!this.draft.emailAddress || !this.draft.purposeKey) return;
+        this.isLoading = true;
         try {
-            const emailAddress = this.draft.emailAddress;
-            const fields = {
-                Contact__c: this.recordId,
-                Email_Address__c: emailAddress,
-                Purpose__c: this.draft.purpose,
-                Is_Primary__c: this.draft.isPrimary,
-                Active__c: true
-            };
-            await createEmailRecord({
-                contactId: this.recordId,
-                emailAddress,
-                purpose: fields.Purpose__c,
-                isPrimary: fields.Is_Primary__c
-            });
+            await createEmail({ contactId: this.recordId, emailAddress: this.draft.emailAddress, purposeKey: this.draft.purposeKey, isPrimary: this.draft.isPrimary });
             this.showForm = false;
-            this.toast('Email added', 'The contact email identity is ready to use.', 'success');
+            this.toast('Email added', 'The identity is unverified until an authorized verifier attests it.', 'success');
             await refreshApex(this.wiredResult);
-        } catch (error) {
-            this.toast('Unable to add email', this.errorMessage(error), 'error');
-        }
+        } catch (error) { this.toast('Unable to add email', this.errorMessage(error), 'error'); }
+        finally { this.isLoading = false; }
     }
 
     async handleSave(event) {
-        const updates = event.detail.draftValues.map((fields) => updateRecord({ fields }));
+        this.isLoading = true;
         try {
-            await Promise.all(updates);
+            await Promise.all(event.detail.draftValues.map((fields) => updateRecord({ fields })));
             this.draftValues = [];
             this.toast('Changes saved', 'Contact email identities were updated.', 'success');
             await refreshApex(this.wiredResult);
-        } catch (error) {
-            this.toast('Unable to save changes', this.errorMessage(error), 'error');
-        }
+        } catch (error) { this.toast('Unable to save changes', this.errorMessage(error), 'error'); }
+        finally { this.isLoading = false; }
     }
 
-    async handleRowAction(event) {
-        if (event.detail.action.name !== 'delete') return;
+    handleRowAction(event) { this.pendingAction = { action: event.detail.action.name, row: event.detail.row }; }
+    cancelAction() { this.pendingAction = null; }
+
+    async confirmAction() {
+        const action = this.pendingAction;
+        if (!action) return;
+        this.pendingAction = null;
+        this.isLoading = true;
         try {
-            await deleteRecord(event.detail.row.Id);
-            this.toast('Email removed', 'The contact email identity was deleted.', 'success');
+            if (action.action === 'verify') await verifyEmail({ contactEmailId: action.row.Id });
+            if (action.action === 'revoke') await revokeEmail({ contactEmailId: action.row.Id });
+            if (action.action === 'deactivate') await deactivateEmail({ contactEmailId: action.row.Id });
+            this.toast('Identity updated', 'The change was recorded and the list was refreshed.', 'success');
             await refreshApex(this.wiredResult);
-        } catch (error) {
-            this.toast('Unable to remove email', this.errorMessage(error), 'error');
-        }
+        } catch (error) { this.toast('Unable to update identity', this.errorMessage(error), 'error'); }
+        finally { this.isLoading = false; }
     }
 
-    toast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
-    }
-
-    errorMessage(error) {
-        return error?.body?.message || error?.message || 'Unexpected error';
-    }
+    toast(title, message, variant) { this.dispatchEvent(new ShowToastEvent({ title, message, variant })); }
+    errorMessage(error) { return error?.body?.message || error?.message || 'Unexpected error'; }
 }

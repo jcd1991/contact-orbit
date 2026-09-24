@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Public, subscriber-extensible purpose catalog for Contact Orbit identities.</description>
+    <label>Contact Email Purpose</label>
+    <pluralLabel>Contact Email Purposes</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

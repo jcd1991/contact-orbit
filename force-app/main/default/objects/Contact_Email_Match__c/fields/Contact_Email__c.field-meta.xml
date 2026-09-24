@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Contact_Email__c</fullName>
+    <label>Matched Contact Email</label>
+    <referenceTo>Contact_Email__c</referenceTo>
+    <relationshipLabel>Match Audit Records</relationshipLabel>
+    <relationshipName>Contact_Email_Match_Audits</relationshipName>
+    <type>Lookup</type>
+</CustomField>

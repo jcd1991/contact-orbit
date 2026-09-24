@@ -1,57 +1,33 @@
 <template>
-    <lightning-card title="Contact Emails" icon-name="standard:email">
-        <lightning-button
-            slot="actions"
-            label="Add email"
-            onclick={showCreateForm}>
-        </lightning-button>
-
+    <lightning-card title="Contact Orbit identities" icon-name="standard:email">
+        <lightning-button slot="actions" label="Add email" onclick={showCreateForm} disabled={isLoading}></lightning-button>
+        <template if:true={isLoading}><lightning-spinner alternative-text="Updating Contact Orbit"></lightning-spinner></template>
         <template if:true={showForm}>
             <div class="slds-p-horizontal_medium slds-p-bottom_medium">
-                <lightning-input
-                    type="email"
-                    name="emailAddress"
-                    label="Email address"
-                    value={draft.emailAddress}
-                    onchange={handleInput}
-                    required>
-                </lightning-input>
-                <lightning-combobox
-                    name="purpose"
-                    label="Purpose"
-                    value={draft.purpose}
-                    options={purposeOptions}
-                    onchange={handleInput}>
-                </lightning-combobox>
-                <lightning-input
-                    type="checkbox"
-                    name="isPrimary"
-                    label="Primary for this purpose"
-                    checked={draft.isPrimary}
-                    onchange={handleInput}>
-                </lightning-input>
-                <div class="slds-m-top_small">
-                    <lightning-button variant="brand" label="Save" onclick={createEmail}></lightning-button>
-                    <lightning-button class="slds-m-left_x-small" label="Cancel" onclick={hideCreateForm}></lightning-button>
-                </div>
+                <lightning-input type="email" name="emailAddress" label="Email address" value={draft.emailAddress} onchange={handleInput} required></lightning-input>
+                <lightning-combobox name="purposeKey" label="Purpose" value={draft.purposeKey} options={purposeOptions} onchange={handleInput} required></lightning-combobox>
+                <lightning-input type="checkbox" name="isPrimary" label="Primary for this purpose" checked={draft.isPrimary} onchange={handleInput}></lightning-input>
+                <div class="slds-m-top_small"><lightning-button variant="brand" label="Save" onclick={createEmail} disabled={isLoading}></lightning-button><lightning-button class="slds-m-left_x-small" label="Cancel" onclick={hideCreateForm}></lightning-button></div>
             </div>
         </template>
-
         <template if:true={hasRows}>
-            <lightning-datatable
-                key-field="Id"
-                data={rows}
-                columns={columns}
-                draft-values={draftValues}
-                onsave={handleSave}
-                onrowaction={handleRowAction}
-                hide-checkbox-column>
-            </lightning-datatable>
-        </template>
-        <template if:false={hasRows}>
-            <div class="slds-p-around_medium slds-text-color_weak">
-                No alternate email identities are stored for this Contact.
+            <div class="slds-p-horizontal_medium slds-p-bottom_x-small" aria-label="Verification status">
+                <template for:each={rows} for:item="row">
+                    <span key={row.Id} class="slds-m-right_small"><span class="slds-assistive-text">{row.Email_Address__c}: </span><lightning-badge label={row.Verification_Status__c}></lightning-badge></span>
+                </template>
             </div>
         </template>
+        <template if:true={hasRows}><lightning-datatable key-field="Id" data={rows} columns={columns} draft-values={draftValues} onsave={handleSave} onrowaction={handleRowAction} hide-checkbox-column></lightning-datatable></template>
+        <template if:false={hasRows}><div class="slds-p-around_medium slds-text-color_weak">No alternate email identities are stored for this Contact.</div></template>
     </lightning-card>
+    <template if:true={hasPendingAction}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="confirm-heading" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header"><h2 id="confirm-heading" class="slds-text-heading_medium">Confirm Contact Orbit change</h2></header>
+                <div class="slds-modal__content slds-p-around_medium">This action is audited. Verify or revoke only when the administrator attestation is accurate; deactivation removes the identity from routing.</div>
+                <footer class="slds-modal__footer"><lightning-button label="Cancel" onclick={cancelAction}></lightning-button><lightning-button class="slds-m-left_small" variant="brand" label={confirmationLabel} onclick={confirmAction}></lightning-button></footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 </template>

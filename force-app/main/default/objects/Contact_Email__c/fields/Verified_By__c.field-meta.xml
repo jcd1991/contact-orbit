@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Verified_By__c</fullName>
+    <label>Verified By</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>Verified Contact Emails</relationshipLabel>
+    <relationshipName>Verified_Contact_Emails</relationshipName>
+    <trackHistory>true</trackHistory>
+    <type>Lookup</type>
+</CustomField>

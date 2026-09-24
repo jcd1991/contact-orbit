@@ -1,0 +1,15 @@
+<template>
+    <lightning-card title="Contact Orbit setup" icon-name="standard:settings">
+        <template if:true={isLoading}><lightning-spinner alternative-text="Saving Contact Orbit settings"></lightning-spinner></template>
+        <template if:true={state}>
+            <div class="slds-p-around_medium">
+                <p class="slds-text-color_weak">{state.packageVersion}</p>
+                <lightning-input type="checkbox" name="suggestions" label="Enable Email-to-Case suggestions" checked={draft.suggestions} onchange={handleInput}></lightning-input>
+                <lightning-input type="checkbox" name="autoLink" label="Enable verified auto-link (advanced)" checked={draft.autoLink} onchange={handleInput}></lightning-input>
+                <lightning-input type="number" name="retention" label="Match-log retention (30–730 days)" min="30" max="730" value={draft.retention} onchange={handleInput}></lightning-input>
+                <div class="slds-m-top_small"><lightning-button variant="brand" label="Save settings" onclick={save}></lightning-button><lightning-button class="slds-m-left_x-small" label="Schedule retention" onclick={schedule}></lightning-button></div>
+                <div class="slds-m-top_medium slds-box slds-theme_shade"><p><strong>Permission preflight</strong></p><p>Case Contact update access: {state.caseUpdateable}</p><p>Contact update access: {state.contactUpdateable}</p></div>
+            </div>
+        </template>
+    </lightning-card>
+</template>

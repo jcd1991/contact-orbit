@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Contact Orbit org-wide routing settings, permission preflight, and retention scheduling.</description>
+    <flexiPage>Contact_Orbit_Setup</flexiPage>
+    <label>Contact Orbit Setup</label>
+    <motif>Custom67: Settings</motif>
+</CustomTab>

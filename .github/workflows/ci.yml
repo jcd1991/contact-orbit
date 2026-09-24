@@ -1,0 +1,71 @@
+name: Contact Orbit CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate tracked files for secrets and org material
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E 'frontdoor\.|sid=|00D[A-Za-z0-9]{12,15}|[A-Za-z0-9_]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{10,}' -- . ':!reports' ':!package-lock.json'; then
+            echo 'Potential Salesforce session material, real org ID, or token found.' >&2
+            exit 1
+          fi
+          git diff --check
+      - name: Install JavaScript test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run LWC Jest
+        run: npm test
+      - name: Run Code Analyzer v5 Recommended and AppExchange rules
+        run: |
+          mkdir -p reports
+          sf code-analyzer run --workspace . --target force-app \
+            --rule-selector Recommended --rule-selector AppExchange \
+            --severity-threshold 2 --output-file reports/code-analyzer.sarif
+      - name: Upload Code Analyzer SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/code-analyzer.sarif
+
+  salesforce:
+    # Scratch-org validation is an explicit, secret-backed release gate.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+      - name: Authenticate Dev Hub from secret
+        env:
+          SF_DEV_HUB_SFDX_URL: ${{ secrets.SF_DEV_HUB_SFDX_URL }}
+        run: printf '%s' "$SF_DEV_HUB_SFDX_URL" > "$RUNNER_TEMP/devhub.sfdxurl" && sf org login sfdx-url --sfdx-url-file "$RUNNER_TEMP/devhub.sfdxurl" --alias contact-orbit-devhub --set-default-dev-hub
+      - name: Create disposable scratch org
+        run: sf org create scratch --definition-file config/project-scratch-def.json --alias contact-orbit-ci --duration-days 1 --target-dev-hub contact-orbit-devhub --wait 20
+      - name: Deploy source and run all local tests
+        run: sf project deploy start --source-dir force-app --target-org contact-orbit-ci --test-level RunLocalTests --wait 30
+      - name: Verify Apex Actions and package source contract
+        run: sf apex run test --test-level RunLocalTests --target-org contact-orbit-ci --wait 30
+      - name: Delete disposable scratch org
+        if: always()
+        run: sf org delete scratch --target-org contact-orbit-ci --no-prompt

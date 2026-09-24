@@ -2,6 +2,10 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>CEI_ContactEmailController</members>
+        <members>CEI_ContactEmailAttestation</members>
+        <members>CEI_ContactOrbitHardeningTest</members>
+        <members>CEI_ContactEmailRoutingController</members>
+        <members>CEI_ContactEmailRetentionBatch</members>
         <members>CEI_ContactEmailService</members>
         <members>CEI_ContactEmailServiceTest</members>
         <members>CEI_EmailMessageHandler</members>
@@ -16,15 +20,40 @@
     <types>
         <members>Contact_Email__c</members>
         <members>Contact_Email_Settings__c</members>
+        <members>Contact_Email_Match__c</members>
+        <members>Contact_Email_Purpose__mdt</members>
         <name>CustomObject</name>
     </types>
     <types>
         <members>contactEmailManager</members>
+        <members>contactEmailMatchManager</members>
+        <members>contactOrbitSetup</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
+        <members>Contact_Orbit_Setup</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
         <members>Contact_Email_Identity_Admin</members>
+        <members>Contact_Orbit_User</members>
+        <members>Contact_Orbit_Verifier</members>
+        <members>Contact_Orbit_Administrator</members>
         <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>Verify_Contact_Email_Identity</members>
+        <members>Manage_Contact_Email_Routing</members>
+        <members>Confirm_Contact_Email_Match</members>
+        <name>CustomPermission</name>
+    </types>
+    <types>
+        <members>Contact_Email_Purpose.*</members>
+        <name>CustomMetadata</name>
+    </types>
+    <types>
+        <members>Contact_Orbit_Setup</members>
+        <name>CustomTab</name>
     </types>
     <version>67.0</version>
 </Package>

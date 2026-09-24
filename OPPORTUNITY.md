@@ -26,11 +26,11 @@ To avoid mistaking raw votes for a good package business, the shortlist was scor
 | Cross Object Merge Fields in Email Template | 5 | 2 | 2 | 20 | Strong need, but requires owning a replacement rendering/sending path and has a direct incumbent |
 | Frequency Reports from Multi-Select Picklists | 4 | 2 | 1 | 8 | Scaling is the hard part, Salesforce is actively working on it, and a direct package exists |
 
-That makes **Contact Email Identity** the best need-to-implementation opportunity after feasibility and incumbent risk are included. Raw points alone would have selected crowded or non-packageable ideas.
+That makes **Contact Orbit** the best need-to-implementation opportunity after feasibility and incumbent risk are included. Raw points alone would have selected crowded or non-packageable ideas.
 
 ## Recommended positioning
 
-Position Contact Email Identity as a focused, native identity-routing layer—not another bulk email product. Start with Contact email storage, purpose-aware Flow resolution, and conservative Email-to-Case matching. Validate demand with Service Cloud teams and nonprofits before expanding to Person Accounts, EAC-adjacent reconciliation, billing routing, and unsubscribe/consent per address.
+Position Contact Orbit as a focused, native identity-routing layer—not another bulk email product. Start with Contact email storage, purpose-aware Flow resolution, and conservative Email-to-Case matching. Validate demand with Service Cloud teams and nonprofits before expanding to Person Accounts, EAC-adjacent reconciliation, billing routing, and unsubscribe/consent per address.
 
 ## Primary evidence
 

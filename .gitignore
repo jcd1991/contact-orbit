@@ -2,3 +2,5 @@
 .sfdx/
 node_modules/
 .DS_Store
+reports/*.sarif
+coverage/

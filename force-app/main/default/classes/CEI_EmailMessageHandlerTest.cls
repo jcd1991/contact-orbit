@@ -27,9 +27,12 @@ private class CEI_EmailMessageHandlerTest {
         Id expectedContactId;
         Id supportCaseId;
         System.runAs(packageUser) {
+            CEI_ContactEmailAttestation.testPermissionOverride = true;
             insert new Contact_Email_Settings__c(
                 SetupOwnerId = UserInfo.getOrganizationId(),
-                Enable_Email_To_Case_Matching__c = true
+                Enable_Email_To_Case_Suggestions__c = true,
+                Enable_Verified_Auto_Link__c = true,
+                Match_Log_Retention_Days__c = 90
             );
 
             Account account = new Account(Name = 'Support Account');
@@ -37,13 +40,15 @@ private class CEI_EmailMessageHandlerTest {
             Contact contact = new Contact(LastName = 'Support Contact', AccountId = account.Id);
             insert contact;
             expectedContactId = contact.Id;
-            insert new Contact_Email__c(
+            Contact_Email__c identity = new Contact_Email__c(
                 Contact__c = contact.Id,
                 Email_Address__c = 'alternate@example.com',
-                Purpose__c = 'Support',
+                Purpose_Key__c = 'Support',
                 Is_Primary__c = true,
                 Active__c = true
             );
+            insert identity;
+            CEI_ContactEmailAttestation.verifyEmail(identity.Id);
             Case supportCase = new Case(Subject = 'Alternate identity', Origin = 'Email');
             insert supportCase;
             supportCaseId = supportCase.Id;
@@ -63,6 +68,7 @@ private class CEI_EmailMessageHandlerTest {
 
         Case supportCase = [SELECT ContactId FROM Case WHERE Id = :supportCaseId];
         System.assertEquals(expectedContactId, supportCase.ContactId);
+        System.assertEquals(1, [SELECT COUNT() FROM Contact_Email_Match__c WHERE Case__c = :supportCaseId AND Status__c = 'AutoLinked']);
     }
 
     @IsTest
@@ -70,31 +76,35 @@ private class CEI_EmailMessageHandlerTest {
         User packageUser = [SELECT Id FROM User WHERE Alias = 'ceimsg' LIMIT 1];
         Id supportCaseId;
         System.runAs(packageUser) {
+            CEI_ContactEmailAttestation.testPermissionOverride = true;
             insert new Contact_Email_Settings__c(
                 SetupOwnerId = UserInfo.getOrganizationId(),
-                Enable_Email_To_Case_Matching__c = true
+                Enable_Email_To_Case_Suggestions__c = true,
+                Enable_Verified_Auto_Link__c = true
             );
             Account account = new Account(Name = 'Ambiguity Account');
             insert account;
             Contact firstContact = new Contact(LastName = 'First', AccountId = account.Id);
             Contact secondContact = new Contact(LastName = 'Second', AccountId = account.Id);
             insert new List<Contact>{ firstContact, secondContact };
-            insert new List<Contact_Email__c>{
+            List<Contact_Email__c> identities = new List<Contact_Email__c>{
                 new Contact_Email__c(
                     Contact__c = firstContact.Id,
                     Email_Address__c = 'shared@example.com',
-                    Purpose__c = 'General',
+                    Purpose_Key__c = 'General',
                     Is_Primary__c = true,
                     Active__c = true
                 ),
                 new Contact_Email__c(
                     Contact__c = secondContact.Id,
                     Email_Address__c = 'shared@example.com',
-                    Purpose__c = 'General',
+                    Purpose_Key__c = 'General',
                     Is_Primary__c = true,
                     Active__c = true
                 )
             };
+            insert identities;
+            for (Contact_Email__c identity : identities) CEI_ContactEmailAttestation.verifyEmail(identity.Id);
             Case supportCase = new Case(Subject = 'Ambiguous identity', Origin = 'Email');
             insert supportCase;
             supportCaseId = supportCase.Id;
@@ -112,5 +122,6 @@ private class CEI_EmailMessageHandlerTest {
 
         Case supportCase = [SELECT ContactId FROM Case WHERE Id = :supportCaseId];
         System.assertEquals(null, supportCase.ContactId);
+        System.assertEquals(1, [SELECT COUNT() FROM Contact_Email_Match__c WHERE Case__c = :supportCaseId AND Status__c = 'Ambiguous']);
     }
 }

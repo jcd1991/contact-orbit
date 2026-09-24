@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Purpose_Key__c</fullName>
+    <description>Stable purpose key resolved through Contact Email Purpose custom metadata.</description>
+    <externalId>false</externalId>
+    <label>Purpose Key</label>
+    <length>80</length>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

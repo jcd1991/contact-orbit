@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Match_Log_Retention_Days__c</fullName>
+    <defaultValue>90</defaultValue>
+    <description>Terminal match-log retention in days. The service clamps this value to 30 through 730.</description>
+    <label>Match Log Retention Days</label>
+    <precision>3</precision>
+    <scale>0</scale>
+    <type>Number</type>
+</CustomField>

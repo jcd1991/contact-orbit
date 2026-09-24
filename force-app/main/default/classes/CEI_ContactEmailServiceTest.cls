@@ -40,23 +40,25 @@ private class CEI_ContactEmailServiceTest {
         Contact_Email__c stored;
         List<CEI_ContactEmailService.ResolveResult> results;
         System.runAs(packageUser) {
+            CEI_ContactEmailAttestation.testPermissionOverride = true;
             workEmail = new Contact_Email__c(
                 Contact__c = contact.Id,
                 Email_Address__c = '  AVERY.WORK@EXAMPLE.COM ',
-                Purpose__c = 'Work',
+                Purpose_Key__c = 'Work',
                 Is_Primary__c = true,
                 Active__c = true
             );
             insert workEmail;
+            CEI_ContactEmailAttestation.verifyEmail(workEmail.Id);
             stored = [
-                SELECT Normalized_Email__c, Match_Key__c
+                SELECT Normalized_Email_Key__c, Contact_Email_Key__c
                 FROM Contact_Email__c
                 WHERE Id = :workEmail.Id
             ];
 
             CEI_ContactEmailService.ResolveRequest request = new CEI_ContactEmailService.ResolveRequest();
             request.contactId = contact.Id;
-            request.purpose = 'Work';
+            request.purposeKey = 'Work';
             Test.startTest();
             results = CEI_ContactEmailService.resolve(
                 new List<CEI_ContactEmailService.ResolveRequest>{ request }
@@ -64,8 +66,8 @@ private class CEI_ContactEmailServiceTest {
             Test.stopTest();
         }
 
-        System.assertEquals('avery.work@example.com', stored.Normalized_Email__c);
-        System.assertEquals(String.valueOf(contact.Id) + '|avery.work@example.com', stored.Match_Key__c);
+        System.assertEquals('avery.work@example.com', stored.Normalized_Email_Key__c);
+        System.assertEquals(String.valueOf(contact.Id) + '|avery.work@example.com', stored.Contact_Email_Key__c);
         System.assertEquals(1, results.size());
         System.assertEquals(true, results[0].matched);
         System.assertEquals('avery.work@example.com', results[0].emailAddress);
@@ -77,7 +79,8 @@ private class CEI_ContactEmailServiceTest {
         Contact contact = [SELECT Id, Email FROM Contact LIMIT 1];
         CEI_ContactEmailService.ResolveRequest request = new CEI_ContactEmailService.ResolveRequest();
         request.contactId = contact.Id;
-        request.purpose = 'Billing';
+        request.purposeKey = 'Billing';
+        request.allowContactEmailFallback = true;
 
         User packageUser = [SELECT Id FROM User WHERE Alias = 'ceiuser' LIMIT 1];
         List<CEI_ContactEmailService.ResolveResult> results;
@@ -100,7 +103,7 @@ private class CEI_ContactEmailServiceTest {
             insert new Contact_Email__c(
                 Contact__c = contact.Id,
                 Email_Address__c = 'first@example.com',
-                Purpose__c = 'Support',
+                Purpose_Key__c = 'Support',
                 Is_Primary__c = true,
                 Active__c = true
             );
@@ -108,7 +111,7 @@ private class CEI_ContactEmailServiceTest {
             Contact_Email__c duplicatePrimary = new Contact_Email__c(
                 Contact__c = contact.Id,
                 Email_Address__c = 'second@example.com',
-                Purpose__c = 'Support',
+                Purpose_Key__c = 'Support',
                 Is_Primary__c = true,
                 Active__c = true
             );

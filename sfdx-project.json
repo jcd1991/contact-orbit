@@ -3,8 +3,8 @@
     {
       "path": "force-app",
       "default": true,
-      "package": "Contact Email Identity",
-      "versionName": "MVP 0.1",
+      "package": "Contact Orbit",
+      "versionName": "Verified Contact Email Routing v1",
       "versionNumber": "0.1.0.NEXT"
     }
   ],

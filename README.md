@@ -1,77 +1,67 @@
-# Contact Email Identity
+# Contact Orbit — Verified Contact Email Routing
 
-Package-ready Salesforce source for managing multiple purpose-specific email addresses on a Contact without creating duplicate Contact records.
+Contact Orbit is a focused Salesforce package for the long-standing IdeaExchange request [Multiple email addresses for a contact](https://ideas.salesforce.com/s/idea/a0B8W00000Gde7FUAR/multiple-email-addresses-for-a-contact). The idea page currently shows 31,630 points and 3,191 votes. Contact Orbit addresses the packageable core: purpose-specific Contact identities, a verified Flow resolver, and safe Email-to-Case suggestions.
 
-## Why this product
+## v1 contract
 
-The IdeaExchange request **Multiple email addresses for a contact** has 31,630 points and 3,191 votes. Recent comments describe active Service Cloud, Email-to-Case, Person Account, nonprofit, billing, and relationship-specific routing needs. The idea remains open and Salesforce's latest visible update asks for more use cases rather than committing to a roadmap.
+- Store multiple active or inactive addresses per Contact, using public subscriber-extensible purpose metadata.
+- Require a purpose key for Flow resolution. A resolver request returns one deterministic result in request order and never returns an address the running user cannot access.
+- Resolve only active, verified identities. `Contact.Email` is used only when a Flow request explicitly enables fallback.
+- Require an audited administrator attestation before an identity participates in routing. Email changes and Contact moves automatically reset verification.
+- Enforce one active primary per Contact and purpose with Contact row locking plus a unique derived scope key.
+- Keep Email-to-Case off by default. Suggestion mode writes a sender-address-free audit record; verified auto-linking is a separate explicit opt-in.
+- Confirming a suggestion rechecks verification, locks the Case, respects Case sharing/FLS, and supersedes conflicting suggestions.
 
-This MVP focuses on the portion a managed package can solve safely:
+Sender email is an identity signal, not cryptographic authentication. A suggestion or auto-link must never grant customer access or authorize a sensitive action.
 
-- Store many active or inactive addresses per Contact.
-- Classify addresses by purpose: General, Work, Personal, Billing, Support, or Other.
-- Enforce one active primary address per Contact and purpose.
-- Resolve the appropriate address from Flow, with a fallback to `Contact.Email`.
-- Optionally match an inbound Email-to-Case `EmailMessage.FromAddress` to one unambiguous alternate address and populate an empty `Case.ContactId`.
-- Give users a Contact record-page component for adding, editing, and removing email identities.
+## Support matrix
 
-The package does **not** claim to change closed Salesforce features such as Einstein Activity Capture association, Sales Engagement cadences, Account Engagement prospect identity, or the native Contact email data model.
+| IdeaExchange need | v1 status | Boundary |
+|---|---|---|
+| Multiple purpose-specific addresses on one Contact | Supported | `Contact_Email__c` sidecar identities |
+| Identify Email-to-Case from an alternate address | Supported | Verified identities only; suggestion-first |
+| Avoid duplicate Contacts | Partial | Routing does not deduplicate or merge Contacts |
+| Relationship/account-specific routing | Not supported | Contact-only v1 |
+| Native email composer / outbound address choice | Not supported | No composer replacement |
+| Einstein Activity Capture or Sales Engagement | Not supported | No activity integration |
+| Account Engagement / prospect identity | Not supported | No marketing identity integration |
+| Person Account UI | Not supported | Contact UI only in v1 |
 
-## Safety boundaries
+## Permission and operations model
 
-- Email-to-Case matching is off by default and requires the org-level `Contact Email Settings` hierarchy setting.
-- Existing `Case.ContactId` values are never overwritten.
-- Shared addresses that match more than one Contact are treated as ambiguous and ignored.
-- Queries and updates use user-mode enforcement; automation users need the packaged permission set and Case access.
-- The two user-facing email fields are optional at the metadata layer for UI API compatibility; the trigger service still enforces that Contact, email address, and purpose are present.
-- Email normalization is intentionally conservative: trim and lowercase only. It does not alter dots or plus tags.
+Assign one of the packaged permission sets:
 
-## Validate in a connected org
+- **Contact Orbit User** — manage non-verification identity fields, read suggestions, and confirm/reject when the user already has standard Case edit access.
+- **Contact Orbit Verifier** — User permissions plus `Verify Contact Email Identity` for audited Verify/Revoke actions.
+- **Contact Orbit Administrator** — custom-object administration, settings, retention scheduling, and deletion. Standard Case and Contact permissions are deliberately not granted broadly.
+
+The setup component reports the current routing mode, retention range, and Case/Contact preflight. Email-to-Case remains disabled after install until an administrator enables Suggestions. Verified auto-link is ignored unless Suggestions is enabled. Retention is clamped to 30–730 days and is scheduled explicitly from setup; installation does not create a recurring job automatically.
+
+## Validation
 
 ```sh
 sf project deploy start --source-dir force-app --target-org YOUR_ORG \
-  --test-level RunSpecifiedTests \
-  --tests CEI_ContactEmailServiceTest \
-  --tests CEI_EmailMessageHandlerTest \
-  --wait 30
-sf apex run test --tests CEI_ContactEmailServiceTest --tests CEI_EmailMessageHandlerTest \
-  --target-org YOUR_ORG --code-coverage --wait 30
+  --test-level RunLocalTests --wait 30
+sf apex run test --test-level RunLocalTests --target-org YOUR_ORG --wait 30
+PATH=/opt/homebrew/bin:/usr/bin:$PATH sf code-analyzer run \
+  --rule-selector Recommended --rule-selector AppExchange \
+  --severity-threshold 2 --output-file reports/code-analyzer.sarif
+npm install
+npm test
 ```
 
-Assign `Contact Email Identity Admin`, add `Contact Email Manager` to the Contact Lightning record page, then enable the hierarchy setting only after the Email-to-Case automation user has access.
+The connected validation run completed with 26 passing Apex tests (26/26), including an unauthorized-user permission check, with 91.4% coverage across the Contact Orbit Apex classes and 100% coverage on both triggers. Code Analyzer v5 completed with no High or Critical findings; remaining findings are Moderate/Low hygiene items and are retained in SARIF for CI review. A clean subscriber install, namespaced Flow discovery, FLS/sharing matrix, and managed upgrade remain release gates.
 
-## Verified MVP status
+## Managed 2GP gate
 
-- Validated in a Salesforce Developer Edition org on September 23, 2026.
-- Source deployment completed with all 20 metadata components.
-- All 7 scoped Apex tests passed.
-- The service, handler, and both triggers reported full coverage; the controller's defensive permission guard and thin Aura wrapper are the only uncovered controller lines in the scoped deployment result.
-- The Contact record page was verified in Chrome: the card renders cleanly, the add form is aligned, the success toast appears, and a newly-created row is readable in the table.
-- `Contact_Email__c` and `Contact_Email_Settings__c` were read back from the validation org, and the packaged permission set was assigned to the validating user.
+The package display name is **Contact Orbit** and the intended namespace is **ContactOrbit**, subject to Salesforce namespace availability. This repository intentionally contains no Dev Hub alias, org ID, installation key, or real authentication material. Set the namespace only after a separate Developer Edition namespace org has been linked to the Dev Hub; the exact commands and irreversible promotion gates are in [docs/managed-package-setup.md](docs/managed-package-setup.md).
 
-This proves the source deploys and behaves correctly in the connected validation org. It does not by itself prove clean-org installation, upgrade compatibility, managed-package creation, or AppExchange security review.
+Do not promote a beta version until a clean subscriber scratch org verifies the namespaced Apex Actions REST resource, Flow discovery, permission sets, UI smoke path, uninstall/reinstall behavior, package coverage of at least 75%, every-trigger coverage, and no unresolved routing failures. The first true upgrade test begins after a released baseline because Salesforce beta versions cannot be upgraded.
 
-## Managed 2GP setup status
+## Security and support
 
-The source is structured for a managed second-generation package. The working product identity is:
-
-- Display name: **Contact Orbit**
-- Namespace candidate: `ContactOrbit`
-- Dev Hub alias: `sflens-browser-6988f780d7e5`
-- Dev Hub org ID: `00Dbm00000zvwwzEAA`
-
-The Dev Hub and **Unlocked Packages and Second-Generation Managed Packages** settings are enabled, and the Dev Hub is configured as the Salesforce CLI default. The package has not been created yet because Salesforce requires a namespace to be created in a separate Developer Edition namespace org and linked to the Dev Hub first. The current Dev Hub Package Manager confirms that namespace editing is unavailable in a Dev Hub org.
-
-After the namespace org is created and linked, finish the release setup in this order:
-
-1. Set `"namespace": "ContactOrbit"` in `sfdx-project.json` after Salesforce confirms availability.
-2. Create the managed package with Salesforce CLI.
-3. Create a beta package version with an installation key and code coverage enabled.
-4. Install that version in a fresh scratch org, run the package tests, and verify the Contact UI and Email-to-Case guardrails.
-5. Promote only after upgrade testing and a deliberate release decision; promotion is irreversible.
-
-Do not commit an installation key or reserve a different namespace after package creation. A managed 2GP namespace cannot be changed once the package exists.
+See [SECURITY.md](SECURITY.md) for the private vulnerability-reporting path, and [CONTRIBUTING.md](CONTRIBUTING.md) for source and scratch-org checks. The package intentionally excludes native composer replacement, Contact deduplication, Einstein Activity Capture, Account Engagement, Person Account UI, and relationship-specific routing from v1.
 
 ## License
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE).

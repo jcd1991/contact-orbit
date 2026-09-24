@@ -1,0 +1,31 @@
+<template>
+    <lightning-card title="Contact Orbit suggestions" icon-name="standard:case">
+        <template if:true={isLoading}><lightning-spinner alternative-text="Updating suggestion"></lightning-spinner></template>
+        <template if:true={hasMatches}>
+            <div class="slds-p-horizontal_medium">
+                <template for:each={matches} for:item="match">
+                    <article key={match.Id} class="slds-box slds-m-vertical_x-small">
+                        <lightning-badge label={match.Status__c}></lightning-badge>
+                        <p>{match.Candidate_Contact__r.Name}</p>
+                        <p class="slds-text-color_weak">{match.Reason_Code__c}</p>
+                        <div class="slds-m-top_small">
+                            <template if:true={match.Candidate_Contact__c}><lightning-button variant="brand" label="Confirm" data-id={match.Id} onclick={askConfirm}></lightning-button></template>
+                            <lightning-button class="slds-m-left_x-small" label="Reject" data-id={match.Id} onclick={askReject}></lightning-button>
+                        </div>
+                    </article>
+                </template>
+            </div>
+        </template>
+        <template if:false={hasMatches}><div class="slds-p-around_medium slds-text-color_weak">No actionable Contact Orbit suggestions are pending.</div></template>
+    </lightning-card>
+    <template if:true={hasPending}>
+        <section role="dialog" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header"><h2 class="slds-text-heading_medium">Confirm suggestion action</h2></header>
+                <div class="slds-modal__content slds-p-around_medium">Confirming rechecks verification and Case access. Rejecting keeps the Case unchanged.</div>
+                <footer class="slds-modal__footer"><lightning-button label="Cancel" onclick={cancel}></lightning-button><lightning-button class="slds-m-left_small" variant="brand" label="Continue" onclick={complete}></lightning-button></footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

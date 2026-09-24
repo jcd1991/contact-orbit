@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Contact_Email__c.Purpose__c</members>
+        <members>Contact_Email__c.Last_Verified__c</members>
+        <members>Contact_Email__c.Match_Key__c</members>
+        <members>Contact_Email__c.Normalized_Email__c</members>
+        <name>CustomField</name>
+    </types>
+    <types>
+        <members>Contact_Email_Settings__c.Enable_Email_To_Case_Matching__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>67.0</version>
+</Package>
