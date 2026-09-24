@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -n -I -E 'frontdoor\.|sid=|00D[A-Za-z0-9]{12,15}|[A-Za-z0-9_]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{10,}' -- . ':!reports' ':!package-lock.json'; then
+          if git grep -n -I -E 'frontdoor\.|sid=|00D[A-Za-z0-9]{12,15}|[A-Za-z0-9_]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{10,}' -- . ':!reports' ':!package-lock.json' ':!.github/workflows/ci.yml'; then
             echo 'Potential Salesforce session material, real org ID, or token found.' >&2
             exit 1
           fi
