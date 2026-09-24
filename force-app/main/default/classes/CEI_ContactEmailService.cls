@@ -46,6 +46,11 @@ global with sharing class CEI_ContactEmailService {
         return purpose != null && purpose.Active__c == true;
     }
 
+    /** Returns whether a packaged or subscriber-created purpose can be resolved. */
+    global static Boolean isPurposeActive(String purposeKey) {
+        return isActivePurpose(purposeKey);
+    }
+
     public static void prepareForSave(List<Contact_Email__c> records) {
         prepareForSave(records, null, false);
     }
@@ -189,12 +194,12 @@ global with sharing class CEI_ContactEmailService {
         for (ResolveRequest request : requests) {
             ResolveResult result = new ResolveResult();
             result.matched = false;
-            result.source = 'None';
-            result.outcomeCode = 'NO_MATCH';
+            result.source = CEI_ContactEmailContract.SOURCE_NONE;
+            result.outcomeCode = CEI_ContactEmailContract.OUTCOME_NO_MATCH;
             result.message = 'No verified identity matched the requested purpose.';
 
             if (request == null || request.contactId == null || String.isBlank(request.purposeKey)) {
-                result.outcomeCode = 'INVALID_REQUEST';
+                result.outcomeCode = CEI_ContactEmailContract.OUTCOME_INVALID_REQUEST;
                 result.message = 'Contact ID and purpose key are required.';
                 results.add(result);
                 continue;
@@ -202,19 +207,19 @@ global with sharing class CEI_ContactEmailService {
             String purposeKey = request.purposeKey.trim();
             Contact_Email_Purpose__mdt purpose = purposes.get(purposeKey);
             if (purpose == null) {
-                result.outcomeCode = 'INVALID_REQUEST';
+                result.outcomeCode = CEI_ContactEmailContract.OUTCOME_INVALID_REQUEST;
                 result.message = 'The requested purpose is not recognized.';
                 results.add(result);
                 continue;
             }
             if (purpose.Active__c != true) {
-                result.outcomeCode = 'PURPOSE_DISABLED';
+                result.outcomeCode = CEI_ContactEmailContract.OUTCOME_PURPOSE_DISABLED;
                 result.message = 'The requested purpose is inactive.';
                 results.add(result);
                 continue;
             }
             if (!contactsById.containsKey(request.contactId)) {
-                result.outcomeCode = 'ACCESS_DENIED';
+                result.outcomeCode = CEI_ContactEmailContract.OUTCOME_ACCESS_DENIED;
                 result.message = 'The Contact is not available to the running user.';
                 results.add(result);
                 continue;
@@ -226,18 +231,26 @@ global with sharing class CEI_ContactEmailService {
                 result.emailAddress = selected.Email_Address__c;
                 result.contactEmailId = selected.Id;
                 result.matched = true;
-                result.source = 'VerifiedIdentity';
-                result.outcomeCode = selected.Is_Primary__c == true ? 'MATCHED_PRIMARY' : 'MATCHED_FALLBACK';
+                result.source = CEI_ContactEmailContract.SOURCE_VERIFIED_IDENTITY;
+                result.outcomeCode = selected.Is_Primary__c == true
+                    ? CEI_ContactEmailContract.OUTCOME_MATCHED_PRIMARY
+                    : CEI_ContactEmailContract.OUTCOME_MATCHED_FALLBACK;
                 result.message = selected.Is_Primary__c == true ? 'Verified primary identity resolved.' : 'Verified fallback identity resolved.';
             } else if (request.allowContactEmailFallback == true && !String.isBlank(contactsById.get(request.contactId).Email)) {
                 result.emailAddress = contactsById.get(request.contactId).Email;
-                result.source = 'ContactEmail';
-                result.outcomeCode = 'CONTACT_EMAIL_FALLBACK';
+                result.source = CEI_ContactEmailContract.SOURCE_CONTACT_EMAIL;
+                result.outcomeCode = CEI_ContactEmailContract.OUTCOME_CONTACT_EMAIL_FALLBACK;
                 result.message = 'No verified identity matched; explicit Contact.Email fallback was used.';
             }
             results.add(result);
         }
         return results;
+    }
+
+    /** Resolves one request for Apex callers while preserving Flow ordering semantics. */
+    global static ResolveResult resolveOne(ResolveRequest request) {
+        List<ResolveResult> results = resolve(new List<ResolveRequest>{ request });
+        return results.isEmpty() ? null : results[0];
     }
 
     public static String primaryScope(Id contactId, String purposeKey) {

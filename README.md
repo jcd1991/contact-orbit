@@ -39,6 +39,8 @@ The setup component reports the current routing mode, retention range, and Case/
 
 ## Validation
 
+The final architecture review, including the trigger boundary, reusable contracts, Well-Architected evidence, and subscriber release gates, is in [docs/architecture-review.md](docs/architecture-review.md).
+
 ```sh
 sf project deploy start --source-dir force-app --target-org YOUR_ORG \
   --test-level RunLocalTests --wait 30
@@ -50,7 +52,7 @@ npm install
 npm test
 ```
 
-The connected validation run completed with 26 passing Apex tests (26/26), including an unauthorized-user permission check, with 91.4% coverage across the Contact Orbit Apex classes and 100% coverage on both triggers. Code Analyzer v5 completed with no High or Critical findings; remaining findings are Moderate/Low hygiene items and are retained in SARIF for CI review. A clean subscriber install, namespaced Flow discovery, FLS/sharing matrix, and managed upgrade remain release gates.
+The connected validation run completed with 27 passing Apex tests (27/27), including an unauthorized-user permission check, with 91.7% coverage across the Contact Orbit Apex classes and 100% coverage on both triggers. Code Analyzer v5 completed with no High or Critical findings; remaining findings are Moderate/Low hygiene items and are retained in SARIF for CI review. A clean subscriber install, namespaced Flow discovery, FLS/sharing matrix, and managed upgrade remain release gates.
 
 ## Managed 2GP gate
 

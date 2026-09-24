@@ -316,4 +316,25 @@ private class CEI_ContactOrbitHardeningTest {
             CEI_ContactEmailRoutingController.testPermissionDenied = false;
         }
     }
+
+    @IsTest
+    static void reusableContractsAndTriggerRuntimeAreStable() {
+        Contact contact = [SELECT Id FROM Contact WHERE LastName = 'Resolver' LIMIT 1];
+        CEI_ContactEmailService.ResolveRequest request = new CEI_ContactEmailService.ResolveRequest();
+        request.contactId = contact.Id;
+        request.purposeKey = 'General';
+        request.allowContactEmailFallback = true;
+
+        CEI_ContactEmailService.ResolveResult result = CEI_ContactEmailService.resolveOne(request);
+        System.assertEquals(CEI_ContactEmailContract.OUTCOME_CONTACT_EMAIL_FALLBACK, result.outcomeCode);
+        System.assertEquals(CEI_ContactEmailContract.SOURCE_CONTACT_EMAIL, result.source);
+        System.assertEquals(true, CEI_ContactEmailService.isPurposeActive('General'));
+        System.assertEquals(false, CEI_ContactEmailService.isPurposeActive('NotARealPurpose'));
+
+        System.assertEquals(true, CEI_TriggerRuntime.enter('test-action'));
+        System.assertEquals(false, CEI_TriggerRuntime.enter('test-action'));
+        CEI_TriggerRuntime.exit('test-action');
+        System.assertEquals(true, CEI_TriggerRuntime.enter('test-action'));
+        CEI_TriggerRuntime.exit('test-action');
+    }
 }

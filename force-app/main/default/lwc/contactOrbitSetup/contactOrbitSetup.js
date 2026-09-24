@@ -11,6 +11,18 @@ export default class ContactOrbitSetup extends LightningElement {
     isLoading = false;
     wiredResult;
 
+    get routingMode() {
+        if (!this.state?.suggestionsEnabled) return 'Off';
+        return this.state.autoLinkEnabled ? 'Verified auto-link' : 'Suggestion only';
+    }
+
+    get caseAccessLabel() { return this.state?.caseUpdateable ? 'Ready' : 'Review access'; }
+    get contactAccessLabel() { return this.state?.contactUpdateable ? 'Ready' : 'Review access'; }
+    get caseAccessClass() { return this.state?.caseUpdateable ? 'status-pill status-pill_success' : 'status-pill status-pill_warning'; }
+    get contactAccessClass() { return this.state?.contactUpdateable ? 'status-pill status-pill_success' : 'status-pill status-pill_warning'; }
+    get preflightLabel() { return this.state?.caseUpdateable && this.state?.contactUpdateable ? 'Ready to test' : 'Action needed'; }
+    get preflightClass() { return this.state?.caseUpdateable && this.state?.contactUpdateable ? 'status-pill status-pill_success' : 'status-pill status-pill_warning'; }
+
     @wire(getSetupState)
     wiredSetup(result) {
         this.wiredResult = result;

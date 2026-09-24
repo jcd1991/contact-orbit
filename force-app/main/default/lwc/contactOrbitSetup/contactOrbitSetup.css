@@ -1,0 +1,29 @@
+:host {
+    display: block;
+    --contact-orbit-border: var(--slds-g-color-border-1, #e5e5e5);
+    --contact-orbit-muted: var(--slds-g-color-neutral-base-30, #5c5c5c);
+    --contact-orbit-success: var(--slds-g-color-success-1, #2e844a);
+    --contact-orbit-warning: var(--slds-g-color-warning-1, #8c4b02);
+}
+
+.setup-body { background: var(--slds-g-color-neutral-base-95, #f8f8f8); }
+.setup-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--slds-g-spacing-4, 1rem); padding: var(--slds-g-spacing-1, .25rem) 0 var(--slds-g-spacing-5, 1.25rem); }
+.setup-hero__meta { display: flex; align-items: flex-end; flex-direction: column; gap: .35rem; text-align: right; }
+.setup-section { padding: var(--slds-g-spacing-4, 1rem) 0; border-top: var(--slds-g-sizing-border-1, 1px) solid var(--contact-orbit-border); }
+.setup-section_preflight { padding-bottom: 0; }
+.field-help { color: var(--contact-orbit-muted); font-size: var(--slds-g-font-scale-neg-1, .75rem); margin-top: var(--slds-g-spacing-1, .25rem); }
+.setup-actions { display: flex; align-items: center; flex-wrap: wrap; }
+.setup-hero__meta { gap: var(--slds-g-spacing-1, .25rem); }
+.preflight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--slds-g-spacing-3, .75rem); }
+.preflight-item { display: flex; align-items: center; justify-content: space-between; gap: var(--slds-g-spacing-3, .75rem); padding: var(--slds-g-spacing-3, .75rem); border: var(--slds-g-sizing-border-1, 1px) solid var(--contact-orbit-border); border-radius: var(--slds-g-radius-border-1, .25rem); background: var(--slds-g-color-neutral-base-100, #fff); }
+.status-pill { display: inline-flex; align-items: center; border-radius: var(--slds-g-radius-border-pill, 999px); padding: var(--slds-g-spacing-1, .2rem) var(--slds-g-spacing-2, .55rem); font-size: var(--slds-g-font-scale-neg-1, .75rem); font-weight: var(--slds-g-font-weight-7, 700); white-space: nowrap; }
+.button-gap { margin-left: var(--slds-g-spacing-2, .5rem); }
+.status-pill_success { color: var(--contact-orbit-success); background: color-mix(in srgb, var(--contact-orbit-success) 12%, white); }
+.status-pill_warning { color: var(--contact-orbit-warning); background: color-mix(in srgb, var(--contact-orbit-warning) 13%, white); }
+.status-pill_neutral { color: var(--contact-orbit-muted); background: var(--slds-g-color-neutral-base-90, #eef1f6); }
+
+@media (max-width: 700px) {
+    .setup-hero { flex-direction: column; }
+    .setup-hero__meta { align-items: flex-start; text-align: left; }
+    .preflight-grid { grid-template-columns: 1fr; }
+}

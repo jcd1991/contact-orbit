@@ -1,31 +1,48 @@
 <template>
     <lightning-card title="Contact Orbit identities" icon-name="standard:email">
         <lightning-button slot="actions" label="Add email" onclick={showCreateForm} disabled={isLoading}></lightning-button>
-        <template if:true={isLoading}><lightning-spinner alternative-text="Updating Contact Orbit"></lightning-spinner></template>
+        <template if:true={isLoading}><lightning-spinner alternative-text="Updating Contact Orbit" size="small"></lightning-spinner></template>
+        <div class="identity-intro slds-p-horizontal_medium slds-p-top_small">
+            <p class="slds-text-body_regular">Store purpose-specific addresses for this Contact. Only active, verified identities can be used for routing.</p>
+            <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">Verification is an audited administrator attestation.</p>
+        </div>
         <template if:true={showForm}>
-            <div class="slds-p-horizontal_medium slds-p-bottom_medium">
-                <lightning-input type="email" name="emailAddress" label="Email address" value={draft.emailAddress} onchange={handleInput} required></lightning-input>
-                <lightning-combobox name="purposeKey" label="Purpose" value={draft.purposeKey} options={purposeOptions} onchange={handleInput} required></lightning-combobox>
-                <lightning-input type="checkbox" name="isPrimary" label="Primary for this purpose" checked={draft.isPrimary} onchange={handleInput}></lightning-input>
-                <div class="slds-m-top_small"><lightning-button variant="brand" label="Save" onclick={createEmail} disabled={isLoading}></lightning-button><lightning-button class="slds-m-left_x-small" label="Cancel" onclick={hideCreateForm}></lightning-button></div>
+            <div class="identity-form slds-m-around_medium">
+                <div class="slds-section__title slds-theme_shade slds-p-around_small">Add an email identity</div>
+                <div class="slds-grid slds-wrap slds-gutters slds-p-around_small">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-input type="email" name="emailAddress" label="Email address" value={draft.emailAddress} onchange={handleInput} required></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                        <lightning-combobox name="purposeKey" label="Purpose" value={draft.purposeKey} options={purposeOptions} onchange={handleInput} required></lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1">
+                        <lightning-input type="checkbox" name="isPrimary" label="Primary for this purpose" checked={draft.isPrimary} onchange={handleInput}></lightning-input>
+                    </div>
+                </div>
+                <div class="identity-form__actions slds-p-horizontal_small slds-p-bottom_small">
+                    <lightning-button variant="brand" label="Save identity" onclick={createEmail} disabled={isLoading}></lightning-button>
+                    <lightning-button class="button-gap" label="Cancel" onclick={hideCreateForm}></lightning-button>
+                </div>
             </div>
         </template>
         <template if:true={hasRows}>
-            <div class="slds-p-horizontal_medium slds-p-bottom_x-small" aria-label="Verification status">
+            <div class="identity-summary slds-p-horizontal_medium slds-p-vertical_small" aria-label="Verification status">
+                <span class="slds-text-title_caps">Identity status</span>
                 <template for:each={rows} for:item="row">
-                    <span key={row.Id} class="slds-m-right_small"><span class="slds-assistive-text">{row.Email_Address__c}: </span><lightning-badge label={row.Verification_Status__c}></lightning-badge></span>
+                    <span key={row.Id} class="identity-summary__item"><span class="slds-assistive-text">{row.Email_Address__c}: </span><lightning-badge label={row.Verification_Status__c}></lightning-badge></span>
                 </template>
             </div>
         </template>
-        <template if:true={hasRows}><lightning-datatable key-field="Id" data={rows} columns={columns} draft-values={draftValues} onsave={handleSave} onrowaction={handleRowAction} hide-checkbox-column></lightning-datatable></template>
-        <template if:false={hasRows}><div class="slds-p-around_medium slds-text-color_weak">No alternate email identities are stored for this Contact.</div></template>
+        <template if:true={hasRows}><div class="identity-table"><lightning-datatable key-field="Id" data={rows} columns={columns} draft-values={draftValues} onsave={handleSave} onrowaction={handleRowAction} hide-checkbox-column></lightning-datatable></div></template>
+        <template if:false={hasRows}><div class="identity-empty slds-p-around_large"><lightning-icon icon-name="utility:email" size="small" alternative-text=""></lightning-icon><p class="slds-m-top_small">No alternate email identities are stored for this Contact.</p><p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">Add one to make verified, purpose-specific routing available.</p></div></template>
     </lightning-card>
     <template if:true={hasPendingAction}>
         <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="confirm-heading" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
                 <header class="slds-modal__header"><h2 id="confirm-heading" class="slds-text-heading_medium">Confirm Contact Orbit change</h2></header>
-                <div class="slds-modal__content slds-p-around_medium">This action is audited. Verify or revoke only when the administrator attestation is accurate; deactivation removes the identity from routing.</div>
-                <footer class="slds-modal__footer"><lightning-button label="Cancel" onclick={cancelAction}></lightning-button><lightning-button class="slds-m-left_small" variant="brand" label={confirmationLabel} onclick={confirmAction}></lightning-button></footer>
+                <div class="slds-modal__content slds-p-around_medium"><p>This action is audited.</p><p class="slds-m-top_small">Verify or revoke only when the administrator attestation is accurate. Deactivation removes the identity from routing.</p></div>
+                <footer class="slds-modal__footer"><lightning-button label="Cancel" onclick={cancelAction}></lightning-button><lightning-button class="button-gap" variant="brand" label={confirmationLabel} onclick={confirmAction}></lightning-button></footer>
             </div>
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>

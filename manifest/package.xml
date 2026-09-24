@@ -8,6 +8,9 @@
         <members>CEI_ContactEmailRetentionBatch</members>
         <members>CEI_ContactEmailService</members>
         <members>CEI_ContactEmailServiceTest</members>
+        <members>CEI_ContactEmailContract</members>
+        <members>CEI_TriggerDispatcher</members>
+        <members>CEI_TriggerRuntime</members>
         <members>CEI_EmailMessageHandler</members>
         <members>CEI_EmailMessageHandlerTest</members>
         <name>ApexClass</name>

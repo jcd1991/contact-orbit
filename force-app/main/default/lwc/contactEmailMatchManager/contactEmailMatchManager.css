@@ -1,0 +1,17 @@
+:host {
+    display: block;
+    --contact-orbit-border: var(--slds-g-color-border-1, #e5e5e5);
+    --contact-orbit-muted: var(--slds-g-color-neutral-base-30, #5c5c5c);
+}
+
+.match-intro { border-bottom: var(--slds-g-sizing-border-1, 1px) solid var(--contact-orbit-border); }
+.match-row { border-color: var(--contact-orbit-border); box-shadow: 0 1px 2px rgb(0 0 0 / 6%); }
+.match-row__header { display: flex; align-items: center; justify-content: space-between; gap: var(--slds-g-spacing-3, .75rem); }
+.match-row__actions { display: flex; align-items: center; flex-wrap: wrap; }
+.match-empty { text-align: center; color: var(--contact-orbit-muted); }
+.button-gap { margin-left: var(--slds-g-spacing-2, .5rem); }
+
+@media (max-width: 600px) {
+    .match-row__header { align-items: flex-start; flex-direction: column; gap: var(--slds-g-spacing-1, .25rem); }
+    .match-row__actions .button-gap { margin-left: 0; margin-right: var(--slds-g-spacing-2, .5rem); }
+}

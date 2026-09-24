@@ -1,14 +1,26 @@
 <template>
     <lightning-card title="Contact Orbit setup" icon-name="standard:settings">
-        <template if:true={isLoading}><lightning-spinner alternative-text="Saving Contact Orbit settings"></lightning-spinner></template>
+        <template if:true={isLoading}><lightning-spinner alternative-text="Saving Contact Orbit settings" size="small"></lightning-spinner></template>
         <template if:true={state}>
-            <div class="slds-p-around_medium">
-                <p class="slds-text-color_weak">{state.packageVersion}</p>
-                <lightning-input type="checkbox" name="suggestions" label="Enable Email-to-Case suggestions" checked={draft.suggestions} onchange={handleInput}></lightning-input>
-                <lightning-input type="checkbox" name="autoLink" label="Enable verified auto-link (advanced)" checked={draft.autoLink} onchange={handleInput}></lightning-input>
-                <lightning-input type="number" name="retention" label="Match-log retention (30–730 days)" min="30" max="730" value={draft.retention} onchange={handleInput}></lightning-input>
-                <div class="slds-m-top_small"><lightning-button variant="brand" label="Save settings" onclick={save}></lightning-button><lightning-button class="slds-m-left_x-small" label="Schedule retention" onclick={schedule}></lightning-button></div>
-                <div class="slds-m-top_medium slds-box slds-theme_shade"><p><strong>Permission preflight</strong></p><p>Case Contact update access: {state.caseUpdateable}</p><p>Contact update access: {state.contactUpdateable}</p></div>
+            <div class="setup-body slds-p-around_medium">
+                <div class="setup-hero">
+                    <div><p class="slds-text-heading_small">Verified Contact Email Routing</p><p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">Configure safe defaults, then explicitly enable the workflow your team is ready to operate.</p></div>
+                    <div class="setup-hero__meta"><span class="slds-text-title_caps">Current mode</span><span class="status-pill status-pill_neutral">{routingMode}</span><span class="slds-text-body_small slds-text-color_weak">{state.packageVersion}</span></div>
+                </div>
+                <section class="setup-section" aria-labelledby="routing-settings-heading">
+                    <h2 id="routing-settings-heading" class="slds-text-title_caps">Routing settings</h2>
+                    <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2"><lightning-input type="checkbox" name="suggestions" label="Enable Email-to-Case suggestions" message-when-value-missing="Choose whether suggestions are available." checked={draft.suggestions} onchange={handleInput}></lightning-input><p class="field-help">Suggestion mode keeps the Case unchanged until a user confirms.</p></div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2"><lightning-input type="checkbox" name="autoLink" label="Enable verified auto-link (advanced)" checked={draft.autoLink} onchange={handleInput}></lightning-input><p class="field-help">Requires suggestions and links only when every message agrees on one Contact.</p></div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2"><lightning-input type="number" name="retention" label="Match-log retention (30–730 days)" min="30" max="730" value={draft.retention} onchange={handleInput}></lightning-input><p class="field-help">Terminal audit rows are removed only after this period.</p></div>
+                    </div>
+                    <div class="setup-actions slds-m-top_medium"><lightning-button variant="brand" label="Save settings" onclick={save} disabled={isLoading}></lightning-button><lightning-button class="button-gap" label="Schedule retention" onclick={schedule} disabled={isLoading}></lightning-button></div>
+                </section>
+                <section class="setup-section setup-section_preflight" aria-labelledby="preflight-heading">
+                    <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center"><h2 id="preflight-heading" class="slds-text-title_caps">Permission preflight</h2><span class={preflightClass}>{preflightLabel}</span></div>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Contact Orbit does not package broad Case permissions. Confirm these access paths in the subscriber org before enabling automation.</p>
+                    <div class="preflight-grid slds-m-top_small"><div class="preflight-item"><span>Case Contact update</span><span class={caseAccessClass}>{caseAccessLabel}</span></div><div class="preflight-item"><span>Contact update</span><span class={contactAccessClass}>{contactAccessLabel}</span></div></div>
+                </section>
             </div>
         </template>
     </lightning-card>
